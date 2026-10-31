@@ -1,4 +1,4 @@
-# Brightloop Software --- Subscription Management System
+﻿# Brightloop Software --- Subscription Management System
 
 A full-stack subscription management platform for managing products,
 pricing plans, quotations, subscriptions, recurring billing, payments,
@@ -213,68 +213,68 @@ The intended monorepo structure is:
 
 ``` text
 subscription-mgmt/
-├── README.md
-├── .gitignore
-├── .editorconfig
-├── docker-compose.yml
-├── server/
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── .env.example
-│   ├── prisma/
-│   │   ├── schema.prisma
-│   │   ├── migrations/
-│   │   └── seed/
-│   │       ├── index.ts
-│   │       ├── users.seed.ts
-│   │       ├── catalog.seed.ts
-│   │       ├── subscriptions.seed.ts
-│   │       ├── billing.seed.ts
-│   │       └── bulk.seed.ts
-│   └── src/
-│       ├── index.ts
-│       ├── app.ts
-│       ├── routes.ts
-│       ├── config/
-│       ├── middleware/
-│       ├── lib/
-│       ├── jobs/
-│       └── modules/
-│           ├── auth/
-│           ├── users/
-│           ├── customers/
-│           ├── products/
-│           ├── plans/
-│           ├── taxes/
-│           ├── discounts/
-│           ├── quotation-templates/
-│           ├── subscriptions/
-│           ├── portal-subscriptions/
-│           ├── invoices/
-│           ├── payments/
-│           ├── billing/
-│           ├── reports/
-│           └── portal-invoices/
-└── client/
-    ├── package.json
-    ├── vite.config.ts
-    └── src/
-        ├── main.tsx
-        ├── app/
-        ├── context/
-        ├── lib/
-        ├── components/
-        │   ├── ui/
-        │   ├── layout/
-        │   └── common/
-        └── features/
-            ├── auth/
-            ├── users/
-            ├── customers/
-            ├── profile/
-            ├── catalog/
-            ├── sales/
-            └── billing/
+Γö£ΓöÇΓöÇ README.md
+Γö£ΓöÇΓöÇ .gitignore
+Γö£ΓöÇΓöÇ .editorconfig
+Γö£ΓöÇΓöÇ docker-compose.yml
+Γö£ΓöÇΓöÇ server/
+Γöé   Γö£ΓöÇΓöÇ package.json
+Γöé   Γö£ΓöÇΓöÇ tsconfig.json
+Γöé   Γö£ΓöÇΓöÇ .env.example
+Γöé   Γö£ΓöÇΓöÇ prisma/
+Γöé   Γöé   Γö£ΓöÇΓöÇ schema.prisma
+Γöé   Γöé   Γö£ΓöÇΓöÇ migrations/
+Γöé   Γöé   ΓööΓöÇΓöÇ seed/
+Γöé   Γöé       Γö£ΓöÇΓöÇ index.ts
+Γöé   Γöé       Γö£ΓöÇΓöÇ users.seed.ts
+Γöé   Γöé       Γö£ΓöÇΓöÇ catalog.seed.ts
+Γöé   Γöé       Γö£ΓöÇΓöÇ subscriptions.seed.ts
+Γöé   Γöé       Γö£ΓöÇΓöÇ billing.seed.ts
+Γöé   Γöé       ΓööΓöÇΓöÇ bulk.seed.ts
+Γöé   ΓööΓöÇΓöÇ src/
+Γöé       Γö£ΓöÇΓöÇ index.ts
+Γöé       Γö£ΓöÇΓöÇ app.ts
+Γöé       Γö£ΓöÇΓöÇ routes.ts
+Γöé       Γö£ΓöÇΓöÇ config/
+Γöé       Γö£ΓöÇΓöÇ middleware/
+Γöé       Γö£ΓöÇΓöÇ lib/
+Γöé       Γö£ΓöÇΓöÇ jobs/
+Γöé       ΓööΓöÇΓöÇ modules/
+Γöé           Γö£ΓöÇΓöÇ auth/
+Γöé           Γö£ΓöÇΓöÇ users/
+Γöé           Γö£ΓöÇΓöÇ customers/
+Γöé           Γö£ΓöÇΓöÇ products/
+Γöé           Γö£ΓöÇΓöÇ plans/
+Γöé           Γö£ΓöÇΓöÇ taxes/
+Γöé           Γö£ΓöÇΓöÇ discounts/
+Γöé           Γö£ΓöÇΓöÇ quotation-templates/
+Γöé           Γö£ΓöÇΓöÇ subscriptions/
+Γöé           Γö£ΓöÇΓöÇ portal-subscriptions/
+Γöé           Γö£ΓöÇΓöÇ invoices/
+Γöé           Γö£ΓöÇΓöÇ payments/
+Γöé           Γö£ΓöÇΓöÇ billing/
+Γöé           Γö£ΓöÇΓöÇ reports/
+Γöé           ΓööΓöÇΓöÇ portal-invoices/
+ΓööΓöÇΓöÇ client/
+    Γö£ΓöÇΓöÇ package.json
+    Γö£ΓöÇΓöÇ vite.config.ts
+    ΓööΓöÇΓöÇ src/
+        Γö£ΓöÇΓöÇ main.tsx
+        Γö£ΓöÇΓöÇ app/
+        Γö£ΓöÇΓöÇ context/
+        Γö£ΓöÇΓöÇ lib/
+        Γö£ΓöÇΓöÇ components/
+        Γöé   Γö£ΓöÇΓöÇ ui/
+        Γöé   Γö£ΓöÇΓöÇ layout/
+        Γöé   ΓööΓöÇΓöÇ common/
+        ΓööΓöÇΓöÇ features/
+            Γö£ΓöÇΓöÇ auth/
+            Γö£ΓöÇΓöÇ users/
+            Γö£ΓöÇΓöÇ customers/
+            Γö£ΓöÇΓöÇ profile/
+            Γö£ΓöÇΓöÇ catalog/
+            Γö£ΓöÇΓöÇ sales/
+            ΓööΓöÇΓöÇ billing/
 ```
 
 ### Backend module pattern
@@ -283,10 +283,10 @@ Each backend module should follow this pattern:
 
 ``` text
 module-name/
-├── module-name.routes.ts
-├── module-name.controller.ts
-├── module-name.service.ts
-└── module-name.schema.ts
+Γö£ΓöÇΓöÇ module-name.routes.ts
+Γö£ΓöÇΓöÇ module-name.controller.ts
+Γö£ΓöÇΓöÇ module-name.service.ts
+ΓööΓöÇΓöÇ module-name.schema.ts
 ```
 
 -   **routes:** URL definitions, middleware and controller wiring.
@@ -302,10 +302,10 @@ A feature folder generally contains:
 
 ``` text
 feature-name/
-├── routes.tsx
-├── api.ts
-├── pages/
-└── components/
+Γö£ΓöÇΓöÇ routes.tsx
+Γö£ΓöÇΓöÇ api.ts
+Γö£ΓöÇΓöÇ pages/
+ΓööΓöÇΓöÇ components/
 ```
 
 ------------------------------------------------------------------------
@@ -551,36 +551,36 @@ Implement the lifecycle centrally in `subscriptions.service.ts`.
   ---------------------------------------------------------------------------------
   Action                  Transition                Main rules and side effects
   ----------------------- ------------------------- -------------------------------
-  Send quotation          DRAFT → QUOTATION         Requires at least one line; set
+  Send quotation          DRAFT ΓåÆ QUOTATION         Requires at least one line; set
                                                     quote validity to today +
                                                     template validity days (default
                                                     30); optionally email customer
 
-  Confirm                 QUOTATION → CONFIRMED     Staff can confirm or customer
+  Confirm                 QUOTATION ΓåÆ CONFIRMED     Staff can confirm or customer
                                                     can accept in portal; reject
                                                     expired quotation
 
-  Activate                CONFIRMED → ACTIVE        Set
+  Activate                CONFIRMED ΓåÆ ACTIVE        Set
                                                     `nextInvoiceDate = startDate`
 
-  Pause                   ACTIVE → PAUSED           Allowed only when
+  Pause                   ACTIVE ΓåÆ PAUSED           Allowed only when
                                                     `plan.pausable`; paused
                                                     subscriptions are not billed
 
-  Resume                  PAUSED → ACTIVE           If next invoice date is in the
+  Resume                  PAUSED ΓåÆ ACTIVE           If next invoice date is in the
                                                     past, set it to today; do not
                                                     back-bill
 
-  Close                   ACTIVE/PAUSED/QUOTATION → Require a reason note; plan
+  Close                   ACTIVE/PAUSED/QUOTATION ΓåÆ Require a reason note; plan
                           CLOSED                    must be closable except
                                                     quotation can always be closed
 
-  Renew                   ACTIVE/CLOSED → ACTIVE    Only when `plan.renewable`;
+  Renew                   ACTIVE/CLOSED ΓåÆ ACTIVE    Only when `plan.renewable`;
                                                     extend expiry by one billing
                                                     period or create a copy for a
                                                     closed subscription
 
-  Automatic close         ACTIVE → CLOSED           Daily at 00:10 when
+  Automatic close         ACTIVE ΓåÆ CLOSED           Daily at 00:10 when
                                                     `plan.autoClose` is true and
                                                     expiry date is before today
   ---------------------------------------------------------------------------------
@@ -599,7 +599,7 @@ endpoint:
 -   Default unit price = product sales price + selected variant extra
     price.
 -   Staff may override unit price where allowed.
--   Line amount = quantity × unit price.
+-   Line amount = quantity ├ù unit price.
 -   Quantity must be at least `plan.minQuantity`.
 -   Default line taxes come from the selected product's taxes.
 -   Assign subscription number using `formatNumber("SUB", id)`
@@ -687,7 +687,7 @@ The following rules are shared across subscription and billing modules:
 2.  Store dates as UTC `DateTime`; use a date utility such as dayjs for
     period calculations.
 3.  Subscription and invoice numbers are generated from their
-    auto-increment IDs, e.g. `SUB-00042` and `INV-00042`.
+    auto-increment IDs, e.g.┬á`SUB-00042` and `INV-00042`.
 4.  An invoice must be unique for a subscription and billing period. The
     database unique constraint is the protection against double billing.
 5.  An invoice is overdue when its status is CONFIRMED and its due date
