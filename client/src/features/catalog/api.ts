@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const api = axios.create({
@@ -21,7 +21,7 @@ export function useProduct(id: number) {
   return useQuery({
     queryKey: ['products', id],
     queryFn: async () => {
-      const res = await api.get(/products/);
+      const res = await api.get(`/products/${id}`);
       return res.data.data;
     },
     enabled: !!id,
@@ -45,7 +45,7 @@ export function useUpdateProduct(id: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: any) => {
-      const res = await api.patch(/products/, data);
+      const res = await api.patch(`/products/${id}`, data);
       return res.data.data;
     },
     onSuccess: () => {
@@ -58,7 +58,7 @@ export function useDeleteProduct() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      const res = await api.delete(/products/);
+      const res = await api.delete(`/products/${id}`);
       return res.data;
     },
     onSuccess: () => {
@@ -72,7 +72,7 @@ export function useAddVariant(productId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { attribute: string; value: string; extraPrice: number }) => {
-      const res = await api.post(/products//variants, data);
+      const res = await api.post(`/products/${productId}/variants`, data);
       return res.data.data;
     },
     onSuccess: () => {
@@ -86,7 +86,7 @@ export function useDeleteVariant(productId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (variantId: number) => {
-      const res = await api.delete(/products//variants/);
+      const res = await api.delete(`/products/${productId}/variants/${variantId}`);
       return res.data;
     },
     onSuccess: () => {
@@ -134,7 +134,7 @@ export function useUpdatePlan(id: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: any) => {
-      const res = await api.patch(/plans/, data);
+      const res = await api.patch(`/plans/${id}`, data);
       return res.data.data;
     },
     onSuccess: () => {
