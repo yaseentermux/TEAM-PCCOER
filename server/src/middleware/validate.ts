@@ -17,10 +17,10 @@ export function validate(schema: ZodSchema, target: "body" | "query" | "params" 
   };
 }
 
-export function requireAuth(req: Request, _res: Response, next: NextFunction) {
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const user = (req as any).user;
   if (!user) {
-    (req as any).user = { id: 1, role: "ADMIN", name: "Admin User", email: "admin@brightloop.test" };
+    return res.status(401).json({ error: { message: "Not authenticated" } });
   }
   next();
 }

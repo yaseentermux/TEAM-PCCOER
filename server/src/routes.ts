@@ -1,9 +1,5 @@
 import { Router } from "express";
 import { asyncHandler } from "./lib/async-handler";
-import { productsRouter } from "./modules/products/products.routes";
-import { plansRouter } from "./modules/plans/plans.routes";
-import { taxesRouter } from "./modules/taxes/taxes.routes";
-import { discountsRouter } from "./modules/discounts/discounts.routes";
 
 export const apiRouter = Router();
 
@@ -19,9 +15,3 @@ apiRouter.get(
     });
   }),
 );
-
-// Member 2 routes
-apiRouter.use("/products", productsRouter);
-apiRouter.use("/plans", plansRouter);
-apiRouter.use("/taxes", taxesRouter);
-apiRouter.use("/discounts", discountsRouter);
