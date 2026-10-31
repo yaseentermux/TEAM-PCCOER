@@ -68,6 +68,25 @@ export const portalCloseSubscriptionSchema = z
   .strict();
 
 /**
+ * Optional notes schema for accepting an official quotation in the customer portal.
+ */
+export const portalAcceptQuotationSchema = z
+  .object({
+    notes: z.string().trim().optional(),
+  })
+  .strict();
+
+/**
+ * Optional notes schema for portal lifecycle actions (pause, resume, renew).
+ */
+export const portalLifecycleNotesSchema = z
+  .object({
+    notes: z.string().trim().optional(),
+  })
+  .strict();
+
+
+/**
  * Query parameter schema for customer portal subscriptions list.
  * Automatically scoped to authenticated customer.
  * Strict mode prevents query tampering (e.g., customerId injection).

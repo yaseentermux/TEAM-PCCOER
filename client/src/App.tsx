@@ -37,6 +37,9 @@ import SubscriptionDetailPage from "./features/sales/pages/SubscriptionDetailPag
 import NewSubscriptionPage from "./features/sales/pages/NewSubscriptionPage";
 import QuotationTemplatesListPage from "./features/sales/pages/QuotationTemplatesListPage";
 import QuotationTemplateDetailPage from "./features/sales/pages/QuotationTemplateDetailPage";
+import MySubscriptionsListPage from "./features/sales/pages/portal/MySubscriptionsListPage";
+import MySubscriptionDetailPage from "./features/sales/pages/portal/MySubscriptionDetailPage";
+import SubscribeCheckoutPage from "./features/sales/pages/portal/SubscribeCheckoutPage";
 
 // M4: Billing, Payments & Analytics
 import BillingDashboardPage from "./features/billing/pages/DashboardPage";
@@ -173,7 +176,9 @@ export function App() {
               }
             >
               <Route index element={<PortalDashboardPage />} />
-              <Route path="subscriptions" element={<PortalSubscriptionsPage />} />
+              <Route path="subscriptions" element={<MySubscriptionsListPage />} />
+              <Route path="subscriptions/:id" element={<MySubscriptionDetailPage />} />
+              <Route path="subscribe" element={<SubscribeCheckoutPage />} />
               <Route path="invoices" element={<MyInvoicesPage />} />
               <Route path="invoices/:id" element={<MyInvoiceDetailPage />} />
               <Route path="plans" element={<PortalPlansPage />} />

@@ -36,6 +36,7 @@ import {
   useProducts,
   useQuotationTemplates,
   useSubscriptions,
+  useSubscriptionPricingPreview,
 } from "../api";
 import { SubscriptionStatusBadge } from "../components/SubscriptionStatusBadge";
 import type {
@@ -89,6 +90,39 @@ export default function NewSubscriptionPage() {
   const createMutation = useCreateSubscription();
   const updateMutation = useUpdateSubscription();
   const isSaving = createMutation.isPending || updateMutation.isPending;
+
+  // Server Pricing Preview Mutation
+  const previewMutation = useSubscriptionPricingPreview();
+
+  const handlePreviewPricing = () => {
+    if (!selectedPlanId) {
+      toast.warning("Please select a subscription plan first");
+      return;
+    }
+    const validLines = lines.filter((l) => l.productId > 0 && l.quantity > 0);
+    if (validLines.length === 0) {
+      toast.warning("Please add at least one valid order line item");
+      return;
+    }
+    previewMutation.mutate(
+      {
+        customerId: selectedCustomerId || undefined,
+        planId: selectedPlanId,
+        lines: validLines.map((l) => ({
+          productId: l.productId,
+          variantId: l.variantId,
+          quantity: l.quantity,
+        })),
+      },
+      {
+        onSuccess: (data) => {
+          toast.success(
+            `Pricing calculated: Recurring Total ${formatMoney(data.recurringAmount)}`
+          );
+        },
+      }
+    );
+  };
 
   // Fallback options extracted from existing subscriptions/templates if dedicated endpoints return empty
   const customers = useMemo(() => {
@@ -1005,27 +1039,69 @@ export default function NewSubscriptionPage() {
 
           {/* Pricing Totals Box */}
           <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-xs space-y-3">
-            <h3 className="text-xs font-semibold tracking-wide uppercase text-slate-500">
-              Order Financial Summary
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-semibold tracking-wide uppercase text-slate-500">
+                Order Financial Summary
+              </h3>
+              {previewMutation.data ? (
+                <Badge variant="outline" className="gap-1 border-emerald-200 bg-emerald-50 text-[10px] text-emerald-700">
+                  <Sparkles className="size-2.5" />
+                  Server Verified
+                </Badge>
+              ) : null}
+            </div>
+
             <div className="space-y-2 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Lines Subtotal</span>
-                <span className="font-medium text-slate-900">{formatMoney(subtotal)}</span>
+                <span className="font-medium text-slate-900">
+                  {formatMoney(previewMutation.data ? previewMutation.data.subtotal : subtotal)}
+                </span>
               </div>
-              {estimatedTax > 0 && (
+
+              {previewMutation.data?.discount && previewMutation.data.discount > 0 ? (
+                <div className="flex justify-between text-emerald-600">
+                  <span>
+                    Discount {previewMutation.data.discountDetails ? `(${previewMutation.data.discountDetails.name})` : ""}
+                  </span>
+                  <span className="font-medium">
+                    -{formatMoney(previewMutation.data.discount)}
+                  </span>
+                </div>
+              ) : null}
+
+              {(previewMutation.data ? previewMutation.data.taxTotal : estimatedTax) > 0 && (
                 <div className="flex justify-between text-slate-600">
-                  <span>Estimated Taxes</span>
-                  <span className="font-medium text-slate-900">{formatMoney(estimatedTax)}</span>
+                  <span>Taxes {previewMutation.data ? `(${previewMutation.data.taxes.map(t => t.name).join(", ")})` : ""}</span>
+                  <span className="font-medium text-slate-900">
+                    {formatMoney(previewMutation.data ? previewMutation.data.taxTotal : estimatedTax)}
+                  </span>
                 </div>
               )}
+
               <div className="border-t border-slate-200 pt-2 flex justify-between items-baseline text-sm">
-                <span className="font-bold text-slate-900">Grand Total</span>
+                <span className="font-bold text-slate-900">Recurring Total</span>
                 <span className="text-lg font-bold text-indigo-600">
-                  {formatMoney(grandTotal)}
+                  {formatMoney(previewMutation.data ? previewMutation.data.recurringAmount : grandTotal)}
                 </span>
               </div>
             </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handlePreviewPricing}
+              disabled={previewMutation.isPending || !selectedPlanId}
+              className="w-full gap-1.5 text-xs text-indigo-700 border-indigo-200 hover:bg-indigo-50"
+            >
+              {previewMutation.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="size-3.5 text-indigo-600" />
+              )}
+              Calculate Live Server Pricing
+            </Button>
           </div>
         </div>
 

@@ -11,6 +11,7 @@ import type {
   SubscriptionListItem,
   SubscriptionDetail,
   SubscriptionFilters,
+  SubscriptionStats,
   CreateSubscriptionInput,
   UpdateSubscriptionInput,
   QuotationTemplateItem,
@@ -19,6 +20,9 @@ import type {
   PlanRef,
   CustomerRef,
   ProductRef,
+  PortalSubscribeInput,
+  SubscriptionPricingPreviewInput,
+  SubscriptionPricingPreviewResult,
 } from "./types";
 
 const get = async <T>(url: string, params?: object) =>
@@ -40,11 +44,14 @@ const del = async <T>(url: string) =>
 export const salesKeys = {
   subscriptions: (f: SubscriptionFilters) => ["sales", "subscriptions", f] as const,
   subscription: (id: number) => ["sales", "subscription", id] as const,
+  stats: () => ["sales", "subscriptions", "stats"] as const,
   templates: () => ["sales", "quotation-templates"] as const,
   template: (id: number) => ["sales", "quotation-template", id] as const,
   plans: () => ["sales", "plans"] as const,
   customers: () => ["sales", "customers"] as const,
   products: () => ["sales", "products"] as const,
+  portalSubscriptions: (f?: object) => ["sales", "portal", "subscriptions", f] as const,
+  portalSubscription: (id: number) => ["sales", "portal", "subscription", id] as const,
 };
 
 function useSalesMutation<TVars, TRes>(
@@ -75,6 +82,18 @@ export const useSubscriptions = (f: SubscriptionFilters) =>
     placeholderData: keepPreviousData,
   });
 
+export const useSubscriptionStats = () =>
+  useQuery({
+    queryKey: salesKeys.stats(),
+    queryFn: async () => {
+      const res = await api.get<SubscriptionStats | { data: SubscriptionStats }>("/subscriptions/stats");
+      if (res.data && "data" in res.data && typeof res.data.data === "object" && res.data.data !== null) {
+        return res.data.data as SubscriptionStats;
+      }
+      return res.data as SubscriptionStats;
+    },
+  });
+
 export const useSubscription = (id: number) =>
   useQuery({
     queryKey: salesKeys.subscription(id),
@@ -102,6 +121,25 @@ export const useUpdateSubscription = () =>
       patch<SubscriptionDetail>(`/subscriptions/${id}`, data),
     "Subscription updated"
   );
+
+export const useSubscriptionPricingPreview = () =>
+  useMutation({
+    mutationFn: async (data: SubscriptionPricingPreviewInput) => {
+      const res = await api.post<
+        SubscriptionPricingPreviewResult | { data: SubscriptionPricingPreviewResult }
+      >("/subscriptions/preview-pricing", data);
+      if (
+        res.data &&
+        "data" in res.data &&
+        typeof res.data.data === "object" &&
+        res.data.data !== null
+      ) {
+        return res.data.data as SubscriptionPricingPreviewResult;
+      }
+      return res.data as SubscriptionPricingPreviewResult;
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  });
 
 // ============================================================================
 // LIFECYCLE ACTION MUTATIONS
@@ -202,8 +240,11 @@ export const usePlans = () =>
     queryKey: salesKeys.plans(),
     queryFn: async () => {
       try {
-        const res = await get<{ data: PlanRef[] }>("/plans");
-        return res.data ?? [];
+        const res = await api.get("/plans");
+        const body = res.data;
+        if (Array.isArray(body)) return body as PlanRef[];
+        if (body && Array.isArray((body as any).data)) return (body as any).data as PlanRef[];
+        return [];
       } catch {
         return [];
       }
@@ -216,8 +257,11 @@ export const useCustomers = () =>
     queryKey: salesKeys.customers(),
     queryFn: async () => {
       try {
-        const res = await get<{ data: CustomerRef[] }>("/customers");
-        return res.data ?? [];
+        const res = await api.get("/customers");
+        const body = res.data;
+        if (Array.isArray(body)) return body as CustomerRef[];
+        if (body && Array.isArray((body as any).data)) return (body as any).data as CustomerRef[];
+        return [];
       } catch {
         return [];
       }
@@ -230,13 +274,83 @@ export const useProducts = () =>
     queryKey: salesKeys.products(),
     queryFn: async () => {
       try {
-        const res = await get<{ data: ProductRef[] }>("/products");
-        return res.data ?? [];
+        const res = await api.get("/products");
+        const body = res.data;
+        if (Array.isArray(body)) return body as ProductRef[];
+        if (body && Array.isArray((body as any).data)) return (body as any).data as ProductRef[];
+        return [];
       } catch {
         return [];
       }
     },
     staleTime: 60_000,
   });
+
+// ============================================================================
+// CUSTOMER PORTAL SUBSCRIPTION QUERY HOOKS
+// ============================================================================
+
+export const usePortalSubscriptions = (params?: {
+  status?: string;
+  page?: number;
+  limit?: number;
+}) =>
+  useQuery({
+    queryKey: salesKeys.portalSubscriptions(params),
+    queryFn: () => get<Paged<SubscriptionListItem>>("/portal/subscriptions", params),
+    placeholderData: keepPreviousData,
+  });
+
+export const usePortalSubscription = (id: number) =>
+  useQuery({
+    queryKey: salesKeys.portalSubscription(id),
+    queryFn: () => unwrap<SubscriptionDetail>(`/portal/subscriptions/${id}`),
+    enabled: !Number.isNaN(id) && id > 0,
+  });
+
+export const usePortalSubscribe = () =>
+  useSalesMutation(
+    (data: PortalSubscribeInput) =>
+      post<SubscriptionDetail>("/portal/subscriptions/subscribe", data),
+    (r) => `Subscription ${r.number ?? r.id} created successfully`
+  );
+
+export const usePortalAcceptQuotation = () =>
+  useSalesMutation(
+    ({ id, notes }: { id: number; notes?: string }) =>
+      post<SubscriptionDetail>(`/portal/subscriptions/${id}/accept`, { notes }),
+    "Quotation accepted successfully! Your subscription is now confirmed."
+  );
+
+export const usePortalPauseSubscription = () =>
+  useSalesMutation(
+    ({ id, notes }: { id: number; notes?: string }) =>
+      post<SubscriptionDetail>(`/portal/subscriptions/${id}/pause`, { notes }),
+    "Subscription paused"
+  );
+
+export const usePortalResumeSubscription = () =>
+  useSalesMutation(
+    ({ id, notes }: { id: number; notes?: string }) =>
+      post<SubscriptionDetail>(`/portal/subscriptions/${id}/resume`, { notes }),
+    "Subscription resumed"
+  );
+
+export const usePortalCloseSubscription = () =>
+  useSalesMutation(
+    ({ id, reason }: { id: number; reason: string }) =>
+      post<SubscriptionDetail>(`/portal/subscriptions/${id}/close`, { reason }),
+    "Subscription cancelled"
+  );
+
+export const usePortalRenewSubscription = () =>
+  useSalesMutation(
+    ({ id, notes }: { id: number; notes?: string }) =>
+      post<SubscriptionDetail>(`/portal/subscriptions/${id}/renew`, { notes }),
+    "Subscription renewed"
+  );
+
+
+
 
 

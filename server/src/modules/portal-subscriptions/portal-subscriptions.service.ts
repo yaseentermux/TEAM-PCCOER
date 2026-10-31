@@ -1,7 +1,18 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../lib/app-error";
-import { PortalSubscriptionQueryParams } from "./portal-subscriptions.schema";
+import {
+  createSubscription,
+  confirmSubscription,
+  pauseSubscription,
+  resumeSubscription,
+  closeSubscription,
+  renewSubscription,
+} from "../subscriptions/subscriptions.service";
+import {
+  PortalSubscriptionQueryParams,
+  PortalSubscribeInput,
+} from "./portal-subscriptions.schema";
 
 /**
  * Relation selection for customer portal subscription detail view.
@@ -156,3 +167,128 @@ export async function getPortalSubscriptionById(
 
   return subscription;
 }
+
+/**
+ * Creates a new subscription requested by the customer through self-service checkout.
+ * Security enforcement:
+ * 1. customerId is derived strictly from the authenticated JWT session.
+ * 2. Prices are calculated server-side using active product catalog pricing.
+ * 3. Enforces plan validity, minimum quantity, and active catalog constraints.
+ */
+export async function portalSubscribe(
+  customerId: number,
+  input: PortalSubscribeInput
+) {
+  const now = new Date();
+  return await createSubscription({
+    customerId,
+    planId: input.planId,
+    startDate: now.toISOString(),
+    paymentTerms: "IMMEDIATE",
+    lines: input.lines,
+  });
+}
+
+/**
+ * Validates that the requested subscription exists and is strictly owned by the authenticated customer.
+ */
+async function verifySubscriptionOwnership(customerId: number, subscriptionId: number) {
+  const subscription = await prisma.subscription.findFirst({
+    where: { id: subscriptionId, customerId },
+    include: { plan: true },
+  });
+
+  if (!subscription) {
+    throw new AppError("Subscription not found", 404);
+  }
+
+  return subscription;
+}
+
+/**
+ * Customer accepts an official quotation assigned to them.
+ * Strictly checks subscription ownership, ensures current status is QUOTATION,
+ * and delegates to central confirmSubscription logic.
+ */
+export async function portalAcceptQuotation(
+  customerId: number,
+  subscriptionId: number,
+  notes?: string
+) {
+  await verifySubscriptionOwnership(customerId, subscriptionId);
+  return await confirmSubscription(
+    subscriptionId,
+    notes ?? "Quotation accepted by customer via portal",
+    customerId
+  );
+}
+
+/**
+ * Customer pauses their active subscription.
+ * Validates customer ownership and plan.pausable flag before pausing.
+ */
+export async function portalPauseSubscription(
+  customerId: number,
+  subscriptionId: number,
+  notes?: string
+) {
+  await verifySubscriptionOwnership(customerId, subscriptionId);
+  return await pauseSubscription(
+    subscriptionId,
+    notes ?? "Subscription paused by customer via portal",
+    customerId
+  );
+}
+
+/**
+ * Customer resumes their paused subscription.
+ * Validates customer ownership before resuming.
+ */
+export async function portalResumeSubscription(
+  customerId: number,
+  subscriptionId: number,
+  notes?: string
+) {
+  await verifySubscriptionOwnership(customerId, subscriptionId);
+  return await resumeSubscription(
+    subscriptionId,
+    notes ?? "Subscription resumed by customer via portal",
+    customerId
+  );
+}
+
+/**
+ * Customer cancels/closes their subscription.
+ * Validates customer ownership, reason length, and plan.closable flag.
+ */
+export async function portalCloseSubscription(
+  customerId: number,
+  subscriptionId: number,
+  reason: string
+) {
+  await verifySubscriptionOwnership(customerId, subscriptionId);
+  return await closeSubscription(
+    subscriptionId,
+    reason,
+    customerId
+  );
+}
+
+/**
+ * Customer renews their closed or active subscription.
+ * Validates customer ownership and plan.renewable flag.
+ */
+export async function portalRenewSubscription(
+  customerId: number,
+  subscriptionId: number,
+  notes?: string
+) {
+  await verifySubscriptionOwnership(customerId, subscriptionId);
+  return await renewSubscription(
+    subscriptionId,
+    notes ?? "Subscription renewed by customer via portal",
+    customerId
+  );
+}
+
+

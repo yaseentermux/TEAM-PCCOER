@@ -7,6 +7,7 @@ import {
   SubscriptionQueryParams,
   CreateFromTemplateBodyInput,
   SubscriptionLineInput,
+  SubscriptionPricingPreviewInput,
 } from "./subscriptions.schema";
 
 /**
@@ -1058,4 +1059,204 @@ export async function renewSubscription(
 
     return updated;
   });
+}
+
+/**
+ * Retrieves aggregate subscription statistics grouped by status.
+ * Uses Prisma groupBy aggregation to avoid loading records into memory.
+ * Handles empty database gracefully (all counts 0).
+ */
+export async function getSubscriptionStats() {
+  const grouped = await prisma.subscription.groupBy({
+    by: ["status"],
+    _count: {
+      _all: true,
+    },
+  });
+
+  const stats = {
+    total: 0,
+    draft: 0,
+    quotation: 0,
+    confirmed: 0,
+    active: 0,
+    paused: 0,
+    closed: 0,
+  };
+
+  for (const group of grouped) {
+    const count = group._count._all;
+    stats.total += count;
+    switch (group.status) {
+      case "DRAFT":
+        stats.draft = count;
+        break;
+      case "QUOTATION":
+        stats.quotation = count;
+        break;
+      case "CONFIRMED":
+        stats.confirmed = count;
+        break;
+      case "ACTIVE":
+        stats.active = count;
+        break;
+      case "PAUSED":
+        stats.paused = count;
+        break;
+      case "CLOSED":
+        stats.closed = count;
+        break;
+    }
+  }
+
+  return stats;
+}
+
+/**
+ * Calculates a pricing preview for a prospective subscription without creating records.
+ * Uses catalog prices and ignores any client-supplied unit prices.
+ * Enforces plan constraints, product active status, and minimum quantities.
+ * Returns subtotal, discounts, line and aggregated taxes, and final recurring total.
+ */
+export async function calculateSubscriptionPricingPreview(
+  data: SubscriptionPricingPreviewInput
+) {
+  if (data.customerId) {
+    await validateCustomer(data.customerId);
+  }
+
+  const plan = await validatePlan(data.planId);
+  const discount = await validateDiscount(data.discountId);
+
+  // Reuses validateAndPrepareLines with plan.minQuantity.
+  // Note: we pass lines without unitPrice so it strictly calculates catalog price.
+  const preparedLines = await validateAndPrepareLines(
+    data.lines.map((l) => ({
+      productId: l.productId,
+      variantId: l.variantId ?? undefined,
+      quantity: l.quantity,
+    })),
+    plan.minQuantity
+  );
+
+  // Fetch taxes for all lines
+  const allTaxIds = Array.from(new Set(preparedLines.flatMap((l) => l.taxIds)));
+  const taxes = allTaxIds.length > 0
+    ? await prisma.tax.findMany({ where: { id: { in: allTaxIds }, isActive: true } })
+    : [];
+  const taxMap = new Map(taxes.map((t) => [t.id, t]));
+
+  const taxBreakdownMap = new Map<number, { id: number; name: string; amount: number }>();
+
+  const previewLines = preparedLines.map((l) => {
+    let lineTaxTotal = 0;
+    const lineTaxes: Array<{ id: number; name: string; rate: number; amount: number }> = [];
+
+    const lineAmountNum = Number(l.amount);
+
+    for (const tid of l.taxIds) {
+      const tax = taxMap.get(tid);
+      if (!tax) continue;
+
+      const rate = Number(tax.amount);
+      const calculatedTax =
+        tax.type === "PERCENT"
+          ? (lineAmountNum * rate) / 100
+          : rate * l.quantity;
+
+      lineTaxTotal += calculatedTax;
+      lineTaxes.push({
+        id: tax.id,
+        name: tax.name,
+        rate,
+        amount: Number(calculatedTax.toFixed(2)),
+      });
+
+      const existingGroup = taxBreakdownMap.get(tax.id);
+      if (existingGroup) {
+        existingGroup.amount += calculatedTax;
+      } else {
+        taxBreakdownMap.set(tax.id, {
+          id: tax.id,
+          name: tax.name,
+          amount: calculatedTax,
+        });
+      }
+    }
+
+    return {
+      productId: l.productId,
+      productName: l.description.split(" (")[0],
+      variantId: l.variantId,
+      description: l.description,
+      quantity: l.quantity,
+      unitPrice: Number(l.unitPrice),
+      amount: lineAmountNum,
+      taxAmount: Number(lineTaxTotal.toFixed(2)),
+      taxes: lineTaxes,
+    };
+  });
+
+  const subtotal = Number(
+    previewLines.reduce((acc, l) => acc + l.amount, 0).toFixed(2)
+  );
+
+  let discountAmount = 0;
+  let discountDetails: {
+    id: number;
+    name: string;
+    type: string;
+    value: number;
+    amount: number;
+  } | null = null;
+
+  if (discount) {
+    const discountVal = Number(discount.value);
+    if (discount.type === "PERCENT") {
+      discountAmount = (subtotal * discountVal) / 100;
+    } else {
+      discountAmount = Math.min(subtotal, discountVal);
+    }
+    discountAmount = Math.min(subtotal, Math.max(0, discountAmount));
+
+    discountDetails = {
+      id: discount.id,
+      name: discount.name,
+      type: discount.type,
+      value: discountVal,
+      amount: Number(discountAmount.toFixed(2)),
+    };
+  }
+
+  const taxTotal = Number(
+    Array.from(taxBreakdownMap.values())
+      .reduce((acc, t) => acc + t.amount, 0)
+      .toFixed(2)
+  );
+
+  const recurringAmount = Number(
+    Math.max(0, subtotal - discountAmount + taxTotal).toFixed(2)
+  );
+
+  return {
+    plan: {
+      id: plan.id,
+      name: plan.name,
+      billingPeriod: plan.billingPeriod,
+      price: Number(plan.price),
+      minQuantity: plan.minQuantity,
+    },
+    lines: previewLines,
+    subtotal,
+    discount: Number(discountAmount.toFixed(2)),
+    discountDetails,
+    taxTotal,
+    taxes: Array.from(taxBreakdownMap.values()).map((t) => ({
+      id: t.id,
+      name: t.name,
+      amount: Number(t.amount.toFixed(2)),
+    })),
+    recurringAmount,
+    total: recurringAmount,
+  };
 }

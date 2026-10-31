@@ -10,6 +10,16 @@ export type PaymentTerms = "IMMEDIATE" | "NET_7" | "NET_15" | "NET_30";
 export type BillingPeriod = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 export type ProductType = "SERVICE" | "GOODS" | "ADDON";
 
+export type SubscriptionStats = {
+  total: number;
+  draft: number;
+  quotation: number;
+  confirmed: number;
+  active: number;
+  paused: number;
+  closed: number;
+};
+
 export type Paged<T> = {
   data: T[];
   meta: {
@@ -217,5 +227,73 @@ export type CreateQuotationTemplateInput = {
 };
 
 export type UpdateQuotationTemplateInput = Partial<CreateQuotationTemplateInput>;
+
+export type PortalSubscriptionLineInput = {
+  productId: number;
+  variantId?: number | null;
+  quantity: number;
+};
+
+export type PortalSubscribeInput = {
+  planId: number;
+  lines: PortalSubscriptionLineInput[];
+};
+
+export type SubscriptionPricingPreviewLineInput = {
+  productId: number;
+  variantId?: number | null;
+  quantity: number;
+};
+
+export type SubscriptionPricingPreviewInput = {
+  customerId?: number | null;
+  planId: number;
+  discountId?: number | null;
+  lines: SubscriptionPricingPreviewLineInput[];
+};
+
+export type SubscriptionPricingPreviewResult = {
+  plan: {
+    id: number;
+    name: string;
+    billingPeriod: string;
+    price: number;
+    minQuantity: number;
+  };
+  lines: Array<{
+    productId: number;
+    productName: string;
+    variantId: number | null;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    amount: number;
+    taxAmount: number;
+    taxes: Array<{
+      id: number;
+      name: string;
+      rate: number;
+      amount: number;
+    }>;
+  }>;
+  subtotal: number;
+  discount: number;
+  discountDetails: {
+    id: number;
+    name: string;
+    type: string;
+    value: number;
+    amount: number;
+  } | null;
+  taxTotal: number;
+  taxes: Array<{
+    id: number;
+    name: string;
+    amount: number;
+  }>;
+  recurringAmount: number;
+  total: number;
+};
+
 
 

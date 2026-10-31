@@ -35,7 +35,17 @@ export const LoginPage: React.FC = () => {
 
       // Check if user was redirected from a protected route
       const fromPath = (location.state as { from?: { pathname?: string } })?.from?.pathname;
-      if (fromPath && !fromPath.startsWith("/login")) {
+      const isFromPortal = fromPath?.startsWith("/portal");
+
+      if (fromPath && !fromPath.startsWith("/login") && !fromPath.startsWith("/forbidden")) {
+        if (user.role === "CUSTOMER" && !isFromPortal) {
+          navigate("/portal", { replace: true });
+          return;
+        }
+        if ((user.role === "ADMIN" || user.role === "INTERNAL") && isFromPortal) {
+          navigate("/app/dashboard", { replace: true });
+          return;
+        }
         navigate(fromPath, { replace: true });
         return;
       }

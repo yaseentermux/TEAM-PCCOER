@@ -228,6 +228,63 @@ export const closeSubscriptionSchema = z.object({
     .min(3, "Cancellation reason must be at least 3 characters"),
 });
 
+/**
+ * Response schema for subscription statistics endpoint (GET /api/subscriptions/stats).
+ */
+export const subscriptionStatsSchema = z.object({
+  total: z.number().int().nonnegative(),
+  draft: z.number().int().nonnegative(),
+  quotation: z.number().int().nonnegative(),
+  confirmed: z.number().int().nonnegative(),
+  active: z.number().int().nonnegative(),
+  paused: z.number().int().nonnegative(),
+  closed: z.number().int().nonnegative(),
+});
+
+/**
+ * Payload schema for pricing preview calculation.
+ * Ignores any client-supplied unit prices to prevent tampering.
+ * Corresponds to POST /api/subscriptions/preview-pricing and /preview
+ */
+export const subscriptionPricingPreviewSchema = z.object({
+  customerId: z
+    .number()
+    .int("Customer ID must be an integer")
+    .positive("Customer ID must be a positive integer")
+    .optional()
+    .nullable(),
+  planId: z
+    .number({ error: "Plan ID is required" })
+    .int("Plan ID must be an integer")
+    .positive("Plan ID must be a positive integer"),
+  discountId: z
+    .number()
+    .int("Discount ID must be an integer")
+    .positive("Discount ID must be a positive integer")
+    .optional()
+    .nullable(),
+  lines: z
+    .array(
+      z.object({
+        productId: z
+          .number({ error: "Product is required" })
+          .int("Product ID must be an integer")
+          .positive("Product ID must be a positive integer"),
+        variantId: z
+          .number()
+          .int("Variant ID must be an integer")
+          .positive("Variant ID must be a positive integer")
+          .optional()
+          .nullable(),
+        quantity: z
+          .number({ error: "Quantity is required" })
+          .int("Quantity must be an integer")
+          .positive("Quantity must be at least 1"),
+      })
+    )
+    .min(1, "At least one order line is required"),
+});
+
 // Inferred TypeScript Types
 export type SubscriptionStatus = z.infer<typeof subscriptionStatusEnum>;
 export type PaymentTerms = z.infer<typeof paymentTermsEnum>;
@@ -240,3 +297,5 @@ export type CreateFromTemplateParam = z.infer<typeof createFromTemplateParamSche
 export type CreateFromTemplateBodyInput = z.infer<typeof createFromTemplateBodySchema>;
 export type SendQuotationInput = z.infer<typeof sendQuotationSchema>;
 export type CloseSubscriptionInput = z.infer<typeof closeSubscriptionSchema>;
+export type SubscriptionStats = z.infer<typeof subscriptionStatsSchema>;
+export type SubscriptionPricingPreviewInput = z.infer<typeof subscriptionPricingPreviewSchema>;

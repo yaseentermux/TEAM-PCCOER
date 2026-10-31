@@ -18,7 +18,7 @@ export const ForbiddenPage: React.FC = () => {
 
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            403 — Access Denied
+            403 - Access Denied
           </h1>
           <p className="text-sm text-slate-500">
             You do not have the required permissions to view this resource. Your
