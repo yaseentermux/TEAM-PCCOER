@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { api, getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { billingAdminRoutes, billingMenu, billingPortalRoutes } from "@/features/billing/routes";
-import { salesAdminRoutes, salesMenu } from "@/features/sales/routes";
+import { salesAdminRoutes, salesMenu, salesPortalRoutes, salesPortalMenu } from "@/features/sales/routes";
 
 type Me = { id: number; name: string; email: string; role: "ADMIN" | "INTERNAL" | "CUSTOMER" };
 const useMe = () => useQuery({ queryKey: ["me"], queryFn: async () => (await api.get<{ data: Me }>("/auth/me")).data.data, retry: false });
@@ -51,8 +51,8 @@ function Shell({ portal = false }: { portal?: boolean }) {
   const qc = useQueryClient();
   if (isLoading) return null;
   if (!me) return <Navigate to="/login" replace />;
-  if (portal !== (me.role === "CUSTOMER")) return <Navigate to={me.role === "CUSTOMER" ? "/portal/invoices" : "/app/dashboard"} replace />;
-  const menu = portal ? [{ label: "My invoices", to: "/portal/invoices" }] : [...salesMenu, ...billingMenu];
+  if (portal !== (me.role === "CUSTOMER")) return <Navigate to={me.role === "CUSTOMER" ? "/portal/subscriptions" : "/app/dashboard"} replace />;
+  const menu = portal ? [...salesPortalMenu, { label: "My invoices", to: "/portal/invoices" }] : [...salesMenu, ...billingMenu];
   const logout = async () => { await api.post("/auth/logout"); qc.clear(); nav("/login"); };
   return (
     <div className="flex min-h-screen bg-slate-50 print:bg-white">
@@ -78,6 +78,6 @@ function Shell({ portal = false }: { portal?: boolean }) {
 export const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/app", element: <Shell />, children: [...billingAdminRoutes, ...salesAdminRoutes] },
-  { path: "/portal", element: <Shell portal />, children: billingPortalRoutes },
+  { path: "/portal", element: <Shell portal />, children: [...salesPortalRoutes, ...billingPortalRoutes] },
   { path: "*", element: <Navigate to="/app/dashboard" replace /> },
 ]);

@@ -14,6 +14,8 @@ import {
   resumeSubscription,
   closeSubscription,
   renewSubscription,
+  getSubscriptionStats,
+  calculateSubscriptionPricingPreview,
 } from "./subscriptions.service";
 import {
   createSubscriptionSchema,
@@ -24,6 +26,7 @@ import {
   createFromTemplateBodySchema,
   sendQuotationSchema,
   closeSubscriptionSchema,
+  subscriptionPricingPreviewSchema,
 } from "./subscriptions.schema";
 
 /**
@@ -64,6 +67,32 @@ export const getSubscriptionsController = asyncHandler(
     const query = subscriptionQuerySchema.parse(req.query);
     const result = await getSubscriptions(query);
     res.status(200).json(result);
+  }
+);
+
+/**
+ * GET /api/subscriptions/stats
+ * Retrieves aggregated subscription counts by status and total.
+ */
+export const getSubscriptionStatsController = asyncHandler(
+  async (_req: Request, res: Response): Promise<void> => {
+    const stats = await getSubscriptionStats();
+    res.status(200).json(stats);
+  }
+);
+
+/**
+ * POST /api/subscriptions/preview-pricing and POST /api/subscriptions/preview
+ * Calculates recurring price breakdown with discounts and taxes without persisting.
+ */
+export const previewSubscriptionPricingController = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const validatedData = subscriptionPricingPreviewSchema.parse(req.body);
+    const preview = await calculateSubscriptionPricingPreview(validatedData);
+    res.status(200).json({
+      data: preview,
+      ...preview,
+    });
   }
 );
 

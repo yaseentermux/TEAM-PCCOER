@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table";
 import { formatDate, formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useSubscriptions, usePlans } from "../api";
+import { useSubscriptions, usePlans, useSubscriptionStats } from "../api";
 import { SubscriptionStatusBadge } from "../components/SubscriptionStatusBadge";
 import type { SubscriptionStatus, SubscriptionListItem } from "../types";
 
@@ -57,11 +57,34 @@ export default function SubscriptionsListPage() {
   });
 
   const { data: plans } = usePlans();
+  const { data: stats } = useSubscriptionStats();
 
   const subscriptions = data?.data ?? [];
   const meta = data?.meta;
   const totalCount = meta?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  const getTabCount = (tabValue: SubscriptionStatus | "ALL") => {
+    if (!stats) return undefined;
+    switch (tabValue) {
+      case "ALL":
+        return stats.total;
+      case "DRAFT":
+        return stats.draft;
+      case "QUOTATION":
+        return stats.quotation;
+      case "CONFIRMED":
+        return stats.confirmed;
+      case "ACTIVE":
+        return stats.active;
+      case "PAUSED":
+        return stats.paused;
+      case "CLOSED":
+        return stats.closed;
+      default:
+        return undefined;
+    }
+  };
 
   // Compute total line amount for a subscription
   const calculateTotalAmount = (sub: SubscriptionListItem) => {
@@ -123,18 +146,31 @@ export default function SubscriptionsListPage() {
         <nav className="-mb-px flex space-x-2 overflow-x-auto pb-1 sm:pb-0" aria-label="Tabs">
           {STATUS_TABS.map((tab) => {
             const isActive = selectedStatus === tab.value;
+            const count = getTabCount(tab.value);
             return (
               <button
                 key={tab.value}
                 onClick={() => handleStatusChange(tab.value)}
                 className={cn(
-                  "whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors",
+                  "inline-flex items-center whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "border-indigo-600 text-indigo-600 font-semibold"
                     : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700"
                 )}
               >
-                {tab.label}
+                <span>{tab.label}</span>
+                {count !== undefined && (
+                  <span
+                    className={cn(
+                      "ml-1.5 rounded-full px-2 py-0.5 text-xs font-medium tabular-nums",
+                      isActive
+                        ? "bg-indigo-100 text-indigo-700"
+                        : "bg-slate-100 text-slate-600"
+                    )}
+                  >
+                    {count}
+                  </span>
+                )}
               </button>
             );
           })}

@@ -5,6 +5,8 @@ import {
   createSubscriptionController,
   createSubscriptionFromTemplateController,
   getSubscriptionsController,
+  getSubscriptionStatsController,
+  previewSubscriptionPricingController,
   getSubscriptionByIdController,
   updateSubscriptionController,
   sendQuotationController,
@@ -29,6 +31,13 @@ subscriptionsRouter.post(
   createSubscriptionFromTemplateController
 );
 subscriptionsRouter.get("/", getSubscriptionsController);
+
+// Aggregate statistics route (must be BEFORE /:id route)
+subscriptionsRouter.get("/stats", getSubscriptionStatsController);
+
+// Pricing preview routes (calculates pricing without saving; must be BEFORE /:id route)
+subscriptionsRouter.post("/preview-pricing", previewSubscriptionPricingController);
+subscriptionsRouter.post("/preview", previewSubscriptionPricingController);
 
 // Admin-only manual job trigger (must be BEFORE /:id routes)
 subscriptionsRouter.post(

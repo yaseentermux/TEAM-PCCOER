@@ -4,10 +4,20 @@ import { AppError } from "../../lib/app-error";
 import {
   portalSubscriptionQuerySchema,
   portalSubscriptionIdParamSchema,
+  portalSubscribeSchema,
+  portalCloseSubscriptionSchema,
+  portalLifecycleNotesSchema,
+  portalAcceptQuotationSchema,
 } from "./portal-subscriptions.schema";
 import {
   getPortalSubscriptions,
   getPortalSubscriptionById,
+  portalSubscribe,
+  portalAcceptQuotation,
+  portalPauseSubscription,
+  portalResumeSubscription,
+  portalCloseSubscription,
+  portalRenewSubscription,
 } from "./portal-subscriptions.service";
 
 /**
@@ -41,4 +51,108 @@ export const getPortalSubscriptionByIdController = asyncHandler(
     res.status(200).json({ data: subscription });
   }
 );
+
+/**
+ * POST /api/portal/subscriptions/subscribe
+ * Customer self-service subscription creation and checkout.
+ */
+export const portalSubscribeController = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    if (!req.user?.id) {
+      throw new AppError("Authentication required", 401);
+    }
+
+    const validatedData = portalSubscribeSchema.parse(req.body);
+    const subscription = await portalSubscribe(req.user.id, validatedData);
+    res.status(201).json({ data: subscription });
+  }
+);
+
+/**
+ * POST /api/portal/subscriptions/:id/accept
+ * Customer accepts an official quotation assigned to them.
+ * Transitions QUOTATION -> CONFIRMED.
+ */
+export const portalAcceptQuotationController = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    if (!req.user?.id) {
+      throw new AppError("Authentication required", 401);
+    }
+
+    const { id } = portalSubscriptionIdParamSchema.parse(req.params);
+    const { notes } = portalAcceptQuotationSchema.parse(req.body || {});
+    const subscription = await portalAcceptQuotation(req.user.id, id, notes);
+    res.status(200).json({ data: subscription });
+  }
+);
+
+/**
+ * POST /api/portal/subscriptions/:id/pause
+ * Customer pauses an active subscription.
+ */
+export const portalPauseSubscriptionController = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    if (!req.user?.id) {
+      throw new AppError("Authentication required", 401);
+    }
+
+    const { id } = portalSubscriptionIdParamSchema.parse(req.params);
+    const { notes } = portalLifecycleNotesSchema.parse(req.body || {});
+    const subscription = await portalPauseSubscription(req.user.id, id, notes);
+    res.status(200).json({ data: subscription });
+  }
+);
+
+/**
+ * POST /api/portal/subscriptions/:id/resume
+ * Customer resumes a paused subscription.
+ */
+export const portalResumeSubscriptionController = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    if (!req.user?.id) {
+      throw new AppError("Authentication required", 401);
+    }
+
+    const { id } = portalSubscriptionIdParamSchema.parse(req.params);
+    const { notes } = portalLifecycleNotesSchema.parse(req.body || {});
+    const subscription = await portalResumeSubscription(req.user.id, id, notes);
+    res.status(200).json({ data: subscription });
+  }
+);
+
+/**
+ * POST /api/portal/subscriptions/:id/close
+ * Customer cancels/closes a subscription.
+ */
+export const portalCloseSubscriptionController = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    if (!req.user?.id) {
+      throw new AppError("Authentication required", 401);
+    }
+
+    const { id } = portalSubscriptionIdParamSchema.parse(req.params);
+    const { reason } = portalCloseSubscriptionSchema.parse(req.body);
+    const subscription = await portalCloseSubscription(req.user.id, id, reason);
+    res.status(200).json({ data: subscription });
+  }
+);
+
+/**
+ * POST /api/portal/subscriptions/:id/renew
+ * Customer renews an active or closed subscription.
+ */
+export const portalRenewSubscriptionController = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    if (!req.user?.id) {
+      throw new AppError("Authentication required", 401);
+    }
+
+    const { id } = portalSubscriptionIdParamSchema.parse(req.params);
+    const { notes } = portalLifecycleNotesSchema.parse(req.body || {});
+    const subscription = await portalRenewSubscription(req.user.id, id, notes);
+    res.status(200).json({ data: subscription });
+  }
+);
+
+
 
