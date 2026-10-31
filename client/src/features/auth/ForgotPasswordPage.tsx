@@ -1,0 +1,124 @@
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Layers, Loader2, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
+import { api, getErrorMessage } from "../../lib/api";
+
+export const ForgotPasswordPage: React.FC = () => {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      setError("Please enter your email address.");
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      await api.post("/auth/forgot-password", {
+        email: email.trim(),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to submit request."));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
+      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+        <div className="text-center space-y-2">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-white shadow-xs mb-2">
+            <Layers className="h-7 w-7" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            Forgot Password
+          </h1>
+          <p className="text-sm text-slate-500">
+            Enter your email and we'll send you a password reset link
+          </p>
+        </div>
+
+        {submitted ? (
+          <div className="space-y-6">
+            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-emerald-900">
+                  Password reset request submitted
+                </p>
+                <p className="mt-1 text-emerald-700 text-xs leading-relaxed">
+                  If an account exists for{" "}
+                  <span className="font-semibold">{email}</span>, you will
+                  receive an email with instructions on how to reset your
+                  password.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              to="/login"
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Return to Login
+            </Link>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-2.5">
+                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="email"
+                className="block text-xs font-semibold text-slate-700 uppercase tracking-wider"
+              >
+                Email Address
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@company.com"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {loading ? "Sending link..." : "Send Reset Link"}
+            </button>
+
+            <div className="text-center pt-2">
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Login
+              </Link>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
