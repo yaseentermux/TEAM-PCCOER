@@ -1,4 +1,6 @@
+import { registerSubscriptionJobs } from "./subscriptions.jobs";
+
 export function registerJobs(): void {
-  // Member-owned jobs (auto-close, billing) will be registered here
-  // during integration. Do not add other members' job logic in Phase 0.
+  // M3: Auto-close expired subscriptions daily at 00:10
+  registerSubscriptionJobs();
 }

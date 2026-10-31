@@ -24,15 +24,19 @@ import { PortalDashboardPage } from "./features/portal/PortalDashboardPage";
 import { PortalSubscriptionsPage } from "./features/portal/PortalSubscriptionsPage";
 import { PortalPlansPage } from "./features/portal/PortalPlansPage";
 
-// M1: Placeholders (for quotation templates & subscriptions)
-import { ModulePlaceholderPage } from "./features/placeholder/ModulePlaceholderPage";
-
 // M2: Product Catalog & Pricing
 import { ProductsListPage } from "./features/catalog/pages/ProductsListPage";
 import { PlansListPage } from "./features/catalog/pages/PlansListPage";
 import { DiscountsPage } from "./features/catalog/pages/DiscountsPage";
 import { TaxesPage } from "./features/catalog/pages/TaxesPage";
 import { PublicPricingPage } from "./features/catalog/pages/PublicPricingPage";
+
+// M3: Sales & Subscription Management
+import SubscriptionsListPage from "./features/sales/pages/SubscriptionsListPage";
+import SubscriptionDetailPage from "./features/sales/pages/SubscriptionDetailPage";
+import NewSubscriptionPage from "./features/sales/pages/NewSubscriptionPage";
+import QuotationTemplatesListPage from "./features/sales/pages/QuotationTemplatesListPage";
+import QuotationTemplateDetailPage from "./features/sales/pages/QuotationTemplateDetailPage";
 
 // M4: Billing, Payments & Analytics
 import BillingDashboardPage from "./features/billing/pages/DashboardPage";
@@ -135,27 +139,14 @@ export function App() {
                 }
               />
 
-              {/* M3: Sales & Contracts */}
-              <Route
-                path="quotation-templates"
-                element={
-                  <ModulePlaceholderPage
-                    title="Quotation Templates"
-                    moduleName="M3 Sales & Quotations"
-                    description="Create reusable sales quotation templates with default recurring terms"
-                  />
-                }
-              />
-              <Route
-                path="subscriptions"
-                element={
-                  <ModulePlaceholderPage
-                    title="Subscriptions"
-                    moduleName="M3 Subscription Engine"
-                    description="Track recurring subscription contracts, auto-renewals, and pause/resume states"
-                  />
-                }
-              />
+              {/* M3: Sales & Subscription Management */}
+              <Route path="subscriptions" element={<SubscriptionsListPage />} />
+              <Route path="subscriptions/new" element={<NewSubscriptionPage />} />
+              <Route path="subscriptions/:id/edit" element={<NewSubscriptionPage />} />
+              <Route path="subscriptions/:id" element={<SubscriptionDetailPage />} />
+              <Route path="quotation-templates" element={<QuotationTemplatesListPage />} />
+              <Route path="quotation-templates/new" element={<QuotationTemplateDetailPage />} />
+              <Route path="quotation-templates/:id" element={<QuotationTemplateDetailPage />} />
 
               {/* M4: Billing & Finance */}
               <Route path="invoices" element={<InvoicesListPage />} />
@@ -197,6 +188,7 @@ export function App() {
             <Route path="/invoices" element={<Navigate to="/app/invoices" replace />} />
             <Route path="/payments" element={<Navigate to="/app/payments" replace />} />
             <Route path="/billing/*" element={<Navigate to="/app/invoices" replace />} />
+            <Route path="/subscriptions" element={<Navigate to="/app/subscriptions" replace />} />
 
             {/* Fallback 404 Route */}
             <Route path="*" element={<NotFoundPage />} />
