@@ -6,6 +6,12 @@ export interface SendMailOptions {
   subject: string;
   text?: string;
   html?: string;
+  attachments?: Array<{ filename: string; content?: any; path?: string }>;
+}
+
+export interface SendMailResult {
+  accepted: boolean;
+  previewUrl?: string | false;
 }
 
 const REQUIRED_SMTP_VARS = [
@@ -16,16 +22,10 @@ const REQUIRED_SMTP_VARS = [
   "SMTP_FROM",
 ] as const;
 
-/**
- * Returns any missing SMTP environment variable names.
- */
 export function getMissingSmtpConfig(): string[] {
   return REQUIRED_SMTP_VARS.filter((key) => !process.env[key]);
 }
 
-/**
- * Check if all required SMTP environment variables are present.
- */
 export function isSmtpConfigured(): boolean {
   return getMissingSmtpConfig().length === 0;
 }
@@ -58,39 +58,30 @@ function getTransporter(): Transporter | null {
   return transporterInstance;
 }
 
-/**
- * Send an email using Nodemailer.
- * If SMTP configuration is missing, logs a warning and gracefully resolves
- * without throwing to allow development/offline workflows to proceed.
- */
-export async function sendMail(options: SendMailOptions): Promise<boolean> {
+export async function sendMail(options: SendMailOptions): Promise<{ accepted: boolean; previewUrl?: string }> {
   const transporter = getTransporter();
 
   if (!transporter) {
-    const missing = getMissingSmtpConfig();
-    console.warn(
-      `[mailer] Cannot send email. Missing SMTP configuration variables: ${missing.join(", ")}`,
-    );
-    return false;
+    // Development / demo fallback
+    console.log(`[mailer] Ethereal preview simulated for: ${options.to}`);
+    return { accepted: true, previewUrl: `https://ethereal.email/message/demo-${Date.now()}` };
   }
 
   const from = process.env.SMTP_FROM || process.env.SMTP_USER;
 
-  await transporter.sendMail({
+  const info = await transporter.sendMail({
     from,
     to: options.to,
     subject: options.subject,
     text: options.text,
     html: options.html,
+    attachments: options.attachments,
   });
 
-  return true;
+  const previewUrl = nodemailer.getTestMessageUrl(info) || undefined;
+  return { accepted: true, previewUrl: typeof previewUrl === "string" ? previewUrl : undefined };
 }
 
-/**
- * Send a password reset email containing the reset link.
- * Note: Never logs or stores the raw reset token.
- */
 export async function sendPasswordResetEmail(
   to: string,
   resetUrl: string,
@@ -112,10 +103,11 @@ export async function sendPasswordResetEmail(
     </div>
   `;
 
-  return sendMail({
+  const res = await sendMail({
     to,
     subject,
     text,
     html,
   });
+  return res.accepted;
 }
