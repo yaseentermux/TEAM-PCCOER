@@ -14,6 +14,11 @@ import { plansRouter } from "./modules/plans/plans.routes";
 import { taxesRouter } from "./modules/taxes/taxes.routes";
 import { discountsRouter } from "./modules/discounts/discounts.routes";
 
+// M3: Sales & Contracts
+import { quotationTemplatesRouter } from "./modules/quotation-templates/quotation-templates.routes";
+import { subscriptionsRouter } from "./modules/subscriptions/subscriptions.routes";
+import { portalSubscriptionsRouter } from "./modules/portal-subscriptions/portal-subscriptions.routes";
+
 // M4: Billing, Payments & Analytics
 import { billingRouter } from "./modules/billing/billing.routes";
 import { invoicesRouter } from "./modules/invoices/invoices.routes";
@@ -52,6 +57,11 @@ apiRouter.use("/products", productsRouter);
 apiRouter.use("/plans", plansRouter);
 apiRouter.use("/taxes", taxesRouter);
 apiRouter.use("/discounts", discountsRouter);
+
+// M3 Routes (Sales & Subscriptions)
+apiRouter.use("/quotation-templates", quotationTemplatesRouter);
+apiRouter.use("/subscriptions", subscriptionsRouter);
+apiRouter.use("/portal/subscriptions", portalSubscriptionsRouter);
 
 // M4 Routes (Billing, Invoices, Payments, Reports)
 apiRouter.use("/billing", billingRouter);
