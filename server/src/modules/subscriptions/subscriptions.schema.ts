@@ -28,7 +28,7 @@ export const paymentTermsEnum = z.enum([
  */
 export const subscriptionLineInputSchema = z.object({
   productId: z
-    .number({ required_error: "Product is required" })
+    .number({ error: "Product is required" })
     .int("Product ID must be an integer")
     .positive("Product ID must be a positive integer"),
   variantId: z
@@ -38,7 +38,7 @@ export const subscriptionLineInputSchema = z.object({
     .optional()
     .nullable(),
   quantity: z
-    .number({ required_error: "Quantity is required" })
+    .number({ error: "Quantity is required" })
     .int("Quantity must be an integer")
     .positive("Quantity must be at least 1"),
   unitPrice: z
@@ -54,11 +54,11 @@ export const subscriptionLineInputSchema = z.object({
  */
 export const createSubscriptionSchema = z.object({
   customerId: z
-    .number({ required_error: "Customer (User ID) is required" })
+    .number({ error: "Customer (User ID) is required" })
     .int("Customer ID must be an integer")
     .positive("Customer ID must be a positive integer"),
   planId: z
-    .number({ required_error: "Plan is required" })
+    .number({ error: "Plan is required" })
     .int("Plan ID must be an integer")
     .positive("Plan ID must be a positive integer"),
   templateId: z
@@ -68,11 +68,11 @@ export const createSubscriptionSchema = z.object({
     .optional()
     .nullable(),
   startDate: z
-    .string({ required_error: "Start date is required" })
-    .datetime({ message: "Start date must be a valid ISO datetime string" }),
+    .string({ error: "Start date is required" })
+    .datetime({ error: "Start date must be a valid ISO datetime string" }),
   expiryDate: z
     .string()
-    .datetime({ message: "Expiry date must be a valid ISO datetime string" })
+    .datetime({ error: "Expiry date must be a valid ISO datetime string" })
     .optional()
     .nullable(),
   paymentTerms: paymentTermsEnum.default("IMMEDIATE"),
@@ -108,11 +108,11 @@ export const updateSubscriptionSchema = z
       .optional(),
     startDate: z
       .string()
-      .datetime({ message: "Start date must be a valid ISO datetime string" })
+      .datetime({ error: "Start date must be a valid ISO datetime string" })
       .optional(),
     expiryDate: z
       .string()
-      .datetime({ message: "Expiry date must be a valid ISO datetime string" })
+      .datetime({ error: "Expiry date must be a valid ISO datetime string" })
       .optional()
       .nullable(),
     paymentTerms: paymentTermsEnum.optional(),
@@ -130,7 +130,7 @@ export const updateSubscriptionSchema = z
   })
   .refine(
     (data) => Object.keys(data).length > 0,
-    { message: "At least one field must be provided for update" }
+    { error: "At least one field must be provided for update" }
   );
 
 /**
@@ -168,7 +168,7 @@ export const subscriptionQuerySchema = z.object({
  */
 export const subscriptionIdParamSchema = z.object({
   id: z.coerce
-    .number({ required_error: "Subscription ID is required" })
+    .number({ error: "Subscription ID is required" })
     .int("Subscription ID must be an integer")
     .positive("Subscription ID must be a positive integer"),
 });
@@ -179,7 +179,7 @@ export const subscriptionIdParamSchema = z.object({
  */
 export const createFromTemplateParamSchema = z.object({
   templateId: z.coerce
-    .number({ required_error: "Template ID is required" })
+    .number({ error: "Template ID is required" })
     .int("Template ID must be an integer")
     .positive("Template ID must be a positive integer"),
 });
@@ -191,12 +191,12 @@ export const createFromTemplateParamSchema = z.object({
  */
 export const createFromTemplateBodySchema = z.object({
   customerId: z
-    .number({ required_error: "Customer (User ID) is required" })
+    .number({ error: "Customer (User ID) is required" })
     .int("Customer ID must be an integer")
     .positive("Customer ID must be a positive integer"),
   startDate: z
-    .string({ required_error: "Start date is required" })
-    .datetime({ message: "Start date must be a valid ISO datetime string" }),
+    .string({ error: "Start date is required" })
+    .datetime({ error: "Start date must be a valid ISO datetime string" }),
   paymentTerms: paymentTermsEnum.optional(),
   discountId: z
     .number()
@@ -223,7 +223,7 @@ export const sendQuotationSchema = z.object({
  */
 export const closeSubscriptionSchema = z.object({
   reason: z
-    .string({ required_error: "Cancellation reason is required" })
+    .string({ error: "Cancellation reason is required" })
     .trim()
     .min(3, "Cancellation reason must be at least 3 characters"),
 });

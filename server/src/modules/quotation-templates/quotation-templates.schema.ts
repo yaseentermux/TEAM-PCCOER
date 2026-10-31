@@ -5,7 +5,7 @@ import { z } from "zod";
  */
 export const quotationTemplateLineSchema = z.object({
   productId: z
-    .number({ required_error: "Product is required" })
+    .number({ error: "Product is required" })
     .int("Product ID must be an integer")
     .positive("Product ID must be a positive integer"),
   variantId: z
@@ -26,7 +26,7 @@ export const quotationTemplateLineSchema = z.object({
  */
 export const createQuotationTemplateSchema = z.object({
   name: z
-    .string({ required_error: "Template name is required" })
+    .string({ error: "Template name is required" })
     .trim()
     .min(2, "Template name must be at least 2 characters"),
   validityDays: z
@@ -35,7 +35,7 @@ export const createQuotationTemplateSchema = z.object({
     .positive("Validity days must be greater than 0")
     .default(30),
   planId: z
-    .number({ required_error: "Plan is required" })
+    .number({ error: "Plan is required" })
     .int("Plan ID must be an integer")
     .positive("Plan ID must be a positive integer"),
   notes: z.string().trim().optional().nullable(),
@@ -73,7 +73,7 @@ export const updateQuotationTemplateSchema = z
   })
   .refine(
     (data) => Object.keys(data).length > 0,
-    { message: "At least one field must be provided for update" }
+    { error: "At least one field must be provided for update" }
   );
 
 /**
@@ -81,7 +81,7 @@ export const updateQuotationTemplateSchema = z
  */
 export const quotationTemplateIdParamSchema = z.object({
   id: z.coerce
-    .number({ required_error: "Template ID is required" })
+    .number({ error: "Template ID is required" })
     .int("Template ID must be an integer")
     .positive("Template ID must be a positive integer"),
 });

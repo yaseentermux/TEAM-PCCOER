@@ -18,7 +18,7 @@ export const portalSubscriptionIdParamSchema = subscriptionIdParamSchema;
 export const portalSubscriptionLineSchema = z
   .object({
     productId: z
-      .number({ required_error: "Product is required" })
+      .number({ error: "Product is required" })
       .int("Product ID must be an integer")
       .positive("Product ID must be a positive integer"),
     variantId: z
@@ -28,7 +28,7 @@ export const portalSubscriptionLineSchema = z
       .optional()
       .nullable(),
     quantity: z
-      .number({ required_error: "Quantity is required" })
+      .number({ error: "Quantity is required" })
       .int("Quantity must be an integer")
       .positive("Quantity must be at least 1"),
   })
@@ -44,7 +44,7 @@ export const portalSubscriptionLineSchema = z
 export const portalSubscribeSchema = z
   .object({
     planId: z
-      .number({ required_error: "Plan is required" })
+      .number({ error: "Plan is required" })
       .int("Plan ID must be an integer")
       .positive("Plan ID must be a positive integer"),
     lines: z
@@ -61,7 +61,7 @@ export const portalSubscribeSchema = z
 export const portalCloseSubscriptionSchema = z
   .object({
     reason: z
-      .string({ required_error: "Cancellation reason is required" })
+      .string({ error: "Cancellation reason is required" })
       .trim()
       .min(3, "Please provide a reason for cancelling (at least 3 characters)"),
   })
