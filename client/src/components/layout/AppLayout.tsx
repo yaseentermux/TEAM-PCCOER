@@ -7,12 +7,12 @@ import {
   User as UserIcon,
   LogOut,
   Search,
-  Layers,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { getFilteredMenuGroups } from "./menu";
+import { BrightloopLogo } from "../common/BrightloopLogo";
 
 export const AppLayout: React.FC = () => {
   const { user, logout } = useAuth();
@@ -52,13 +52,12 @@ export const AppLayout: React.FC = () => {
         <div className="flex h-16 items-center justify-between px-4 border-b border-slate-800">
           <Link
             to="/app/dashboard"
-            className="flex items-center gap-2.5 overflow-hidden font-bold tracking-tight text-white"
+            className="flex items-center gap-2.5 overflow-hidden"
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white shadow-xs">
-              <Layers className="h-5 w-5" />
-            </div>
-            {!sidebarCollapsed && (
-              <span className="text-lg truncate">Brightloop</span>
+            {sidebarCollapsed ? (
+              <BrightloopLogo size={36} showText={false} />
+            ) : (
+              <BrightloopLogo size={36} showText={true} />
             )}
           </Link>
 
@@ -160,7 +159,7 @@ export const AppLayout: React.FC = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search subscriptions, customers, invoices... (Press /)"
+                placeholder="Search subscriptions, customers, invoices..."
                 className="w-full pl-9 pr-4 py-1.5 text-xs sm:text-sm bg-slate-100/70 border border-transparent rounded-lg focus:bg-white focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-slate-400"
               />
             </div>

@@ -7,10 +7,41 @@ export async function seedUsers() {
   console.log("Seeding development users...");
 
   // Password satisfying password complexity policy (/^(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{9,}$/)
-  const defaultPassword = "Password1!";
+  const defaultPassword = "Password@123";
   const passwordHash = await bcrypt.hash(defaultPassword, 10);
 
   const users = [
+    {
+      name: "System Administrator",
+      email: "admin@brightloop.io",
+      passwordHash,
+      role: Role.ADMIN,
+      company: "Brightloop Software",
+      phone: "+1-555-0101",
+      address: "100 Innovation Way, Suite 400",
+      isActive: true,
+    },
+    {
+      name: "Sales Representative",
+      email: "staff@brightloop.io",
+      passwordHash,
+      role: Role.INTERNAL,
+      company: "Brightloop Software",
+      phone: "+1-555-0102",
+      address: "100 Innovation Way, Suite 400",
+      isActive: true,
+    },
+    {
+      name: "Acme Customer",
+      email: "customer@acme.com",
+      passwordHash,
+      role: Role.CUSTOMER,
+      company: "Acme Corporation",
+      phone: "+1-555-0103",
+      address: "500 Market Street",
+      isActive: true,
+    },
+    // Also upsert the old emails to avoid breaking anyone who already seeded
     {
       name: "System Administrator",
       email: "admin@brightloop.com",
@@ -53,6 +84,7 @@ export async function seedUsers() {
         phone: user.phone,
         address: user.address,
         isActive: user.isActive,
+        passwordHash: user.passwordHash,
       },
       create: user,
     });
@@ -60,6 +92,12 @@ export async function seedUsers() {
   }
 
   console.log("User seeding complete.");
+  console.log("");
+  console.log("=== LOGIN CREDENTIALS ===");
+  console.log("Admin:    admin@brightloop.io  /  Password@123");
+  console.log("Staff:    staff@brightloop.io  /  Password@123");
+  console.log("Customer: customer@acme.com    /  Password@123");
+  console.log("=========================");
 }
 
 // Run standalone if executed directly

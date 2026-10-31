@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePlans, useCreatePlan, useUpdatePlan } from '../api';
-import { Calendar, Plus, Check, Clock, AlertCircle, Sparkles, Repeat, ShieldCheck, PauseCircle } from 'lucide-react';
+import { Plus, Check, Clock, AlertCircle, Repeat, Edit2, PlayCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 export const PlansListPage: React.FC = () => {
+  const navigate = useNavigate();
   const { data: plansData, isLoading } = usePlans();
   const createPlanMutation = useCreatePlan();
   const updatePlanMutation = useUpdatePlan(0);
@@ -100,7 +102,7 @@ export const PlansListPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Plans 3D Cards Grid */}
+      {/* Plans Grid */}
       {isLoading ? (
         <div className="p-12 text-center text-slate-400 text-xs">Loading plans...</div>
       ) : (
@@ -113,7 +115,8 @@ export const PlansListPage: React.FC = () => {
             return (
               <div 
                 key={plan.id}
-                className="card-tactile p-5 flex flex-col justify-between relative overflow-hidden group"
+                onClick={() => handleOpenModal(plan)}
+                className="card-tactile p-5 flex flex-col justify-between relative overflow-hidden group cursor-pointer hover:border-indigo-400 transition-all"
               >
                 {/* Subtle colored accent top border */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 opacity-80" />
@@ -124,7 +127,9 @@ export const PlansListPage: React.FC = () => {
                       <span className="text-[10px] font-bold tracking-wider uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
                         {plan.billingPeriod}
                       </span>
-                      <h3 className="text-base font-bold text-slate-900 mt-2">{plan.name}</h3>
+                      <h3 className="text-base font-bold text-slate-900 mt-2 group-hover:text-indigo-600 transition-colors">
+                        {plan.name}
+                      </h3>
                     </div>
 
                     {/* Status Badge */}
@@ -177,12 +182,31 @@ export const PlansListPage: React.FC = () => {
                   <span className="text-[10px] text-slate-400">
                     {plan.endDate ? `Ends ${new Date(plan.endDate).toLocaleDateString()}` : 'No expiration date'}
                   </span>
-                  <button
-                    onClick={() => handleOpenModal(plan)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
-                  >
-                    Edit Rules →
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/app/subscriptions/new`);
+                      }}
+                      className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 transition-colors flex items-center gap-1 cursor-pointer"
+                      title="Create subscription with this plan"
+                    >
+                      <PlayCircle className="w-3.5 h-3.5" />
+                      Subscribe
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenModal(plan);
+                      }}
+                      className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      Edit
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -194,20 +218,26 @@ export const PlansListPage: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-900">
-                {editingPlan ? 'Edit Plan Configuration' : 'Create Subscription Plan'}
-              </h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <h3 className="font-bold text-slate-900">
+                {editingPlan ? `Edit ${editingPlan.name}` : 'New Subscription Plan'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-lg cursor-pointer"
+              >
+                ✕
+              </button>
             </div>
 
-            <form onSubmit={handleSave} className="p-5 space-y-4 text-xs">
+            <form onSubmit={handleSave} className="p-6 space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Plan Display Name</label>
+                <label className="block font-semibold text-slate-700 mb-1">Plan Name</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Enterprise Monthly"
+                  placeholder="e.g. Pro Monthly, Starter Annual"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -216,7 +246,7 @@ export const PlansListPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Base Price (₹)</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Base Price</label>
                   <input
                     type="number"
                     min="0"
@@ -314,11 +344,11 @@ export const PlansListPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl"
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-5 py-2 rounded-xl btn-3d font-semibold">
+                <button type="submit" className="px-5 py-2 rounded-xl btn-3d font-semibold cursor-pointer">
                   Save Plan
                 </button>
               </div>
@@ -329,3 +359,5 @@ export const PlansListPage: React.FC = () => {
     </div>
   );
 };
+
+export default PlansListPage;
