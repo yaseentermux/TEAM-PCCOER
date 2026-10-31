@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { Role } from "@prisma/client";
+import { requireAuth, requireRole } from "../../middleware/auth";
 import {
   createQuotationTemplateController,
   getQuotationTemplatesController,
@@ -9,8 +11,37 @@ import {
 
 export const quotationTemplatesRouter = Router();
 
-quotationTemplatesRouter.post("/", createQuotationTemplateController);
-quotationTemplatesRouter.get("/", getQuotationTemplatesController);
-quotationTemplatesRouter.get("/:id", getQuotationTemplateByIdController);
-quotationTemplatesRouter.patch("/:id", updateQuotationTemplateController);
-quotationTemplatesRouter.delete("/:id", deleteQuotationTemplateController);
+quotationTemplatesRouter.post(
+  "/",
+  requireAuth,
+  requireRole(Role.ADMIN, Role.INTERNAL),
+  createQuotationTemplateController
+);
+
+quotationTemplatesRouter.get(
+  "/",
+  requireAuth,
+  requireRole(Role.ADMIN, Role.INTERNAL),
+  getQuotationTemplatesController
+);
+
+quotationTemplatesRouter.get(
+  "/:id",
+  requireAuth,
+  requireRole(Role.ADMIN, Role.INTERNAL),
+  getQuotationTemplateByIdController
+);
+
+quotationTemplatesRouter.patch(
+  "/:id",
+  requireAuth,
+  requireRole(Role.ADMIN, Role.INTERNAL),
+  updateQuotationTemplateController
+);
+
+quotationTemplatesRouter.delete(
+  "/:id",
+  requireAuth,
+  requireRole(Role.ADMIN, Role.INTERNAL),
+  deleteQuotationTemplateController
+);
