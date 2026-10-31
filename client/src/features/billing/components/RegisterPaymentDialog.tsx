@@ -18,7 +18,7 @@ const nativeSelect = "h-8 w-full rounded-lg border border-input bg-transparent p
 export function RegisterPaymentDialog({ invoice, open, onOpenChange }: { invoice: InvoiceDetail; open: boolean; onOpenChange: (o: boolean) => void }) {
   const schema = z.object({
     method: z.enum(["BANK_TRANSFER", "UPI", "CARD", "CASH", "ONLINE"]),
-    amount: z.coerce.number({ invalid_type_error: "Enter an amount" })
+    amount: z.coerce.number()
       .positive("Amount must be greater than 0")
       .max(invoice.balance, `Cannot exceed the balance of ${formatMoney(invoice.balance)}`),
     paymentDate: z.string().min(1, "Pick a date"),
@@ -27,7 +27,7 @@ export function RegisterPaymentDialog({ invoice, open, onOpenChange }: { invoice
   type Form = z.infer<typeof schema>;
 
   const defaults = { method: "BANK_TRANSFER" as const, amount: invoice.balance, paymentDate: dayjs().format("YYYY-MM-DD"), note: "" };
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<Form>({ resolver: zodResolver(schema), defaultValues: defaults });
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<Form>({ resolver: zodResolver(schema) as any, defaultValues: defaults });
   useEffect(() => { if (open) reset(defaults); }, [open, invoice.balance]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pay = useRegisterPayment();

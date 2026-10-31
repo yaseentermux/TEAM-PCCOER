@@ -11,13 +11,13 @@ import { TaxesPage } from './features/catalog/pages/TaxesPage';
 import { PublicPricingPage } from './features/catalog/pages/PublicPricingPage';
 
 // M4 Features
-import { DashboardPage } from './features/billing/pages/DashboardPage';
-import { InvoicesListPage } from './features/billing/pages/InvoicesListPage';
-import { InvoiceDetailPage } from './features/billing/pages/InvoiceDetailPage';
-import { PaymentsListPage } from './features/billing/pages/PaymentsListPage';
-import { BillingRunsPage } from './features/billing/pages/BillingRunsPage';
-import { MyInvoicesPage } from './features/billing/pages/portal/MyInvoicesPage';
-import { MyInvoiceDetailPage } from './features/billing/pages/portal/MyInvoiceDetailPage';
+import DashboardPage from './features/billing/pages/DashboardPage';
+import InvoicesListPage from './features/billing/pages/InvoicesListPage';
+import InvoiceDetailPage from './features/billing/pages/InvoiceDetailPage';
+import PaymentsListPage from './features/billing/pages/PaymentsListPage';
+import BillingRunsPage from './features/billing/pages/BillingRunsPage';
+import MyInvoicesPage from './features/billing/pages/portal/MyInvoicesPage';
+import MyInvoiceDetailPage from './features/billing/pages/portal/MyInvoiceDetailPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
