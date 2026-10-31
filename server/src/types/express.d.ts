@@ -1,3 +1,5 @@
+import type { Role } from "@prisma/client";
+
 export {};
 
 declare global {
@@ -5,7 +7,9 @@ declare global {
     interface Request {
       user?: {
         id: number;
-        role: "ADMIN" | "INTERNAL" | "CUSTOMER";
+        email: string;
+        name: string;
+        role: Role;
       };
     }
   }
