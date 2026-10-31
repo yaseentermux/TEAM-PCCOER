@@ -11,6 +11,13 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(16, "JWT_SECRET must be at least 16 characters"),
   JWT_EXPIRES_IN: z.string().default("7d"),
   COOKIE_NAME: z.string().min(1).default("brightloop_token"),
+  // SMTP Configuration (for password reset and billing emails)
+  SMTP_HOST: z.string().default(""),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.string().default(""),
+  SMTP_PASS: z.string().default(""),
+  SMTP_FROM: z.string().default(""),
+  SMTP_SECURE: z.string().default("false"),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
+import { env } from "../config/env";
 
 export interface SendMailOptions {
   to: string;
@@ -13,14 +14,17 @@ const REQUIRED_SMTP_VARS = [
   "SMTP_PORT",
   "SMTP_USER",
   "SMTP_PASS",
-  "SMTP_FROM",
 ] as const;
 
 /**
  * Returns any missing SMTP environment variable names.
  */
 export function getMissingSmtpConfig(): string[] {
-  return REQUIRED_SMTP_VARS.filter((key) => !process.env[key]);
+  const missing: string[] = [];
+  if (!env.SMTP_HOST) missing.push("SMTP_HOST");
+  if (!env.SMTP_USER) missing.push("SMTP_USER");
+  if (!env.SMTP_PASS) missing.push("SMTP_PASS");
+  return missing;
 }
 
 /**
@@ -32,36 +36,43 @@ export function isSmtpConfigured(): boolean {
 
 let transporterInstance: Transporter | null = null;
 
-function getTransporter(): Transporter | null {
+export function getTransporter(): Transporter | null {
   if (transporterInstance) {
     return transporterInstance;
   }
 
-  const missing = getMissingSmtpConfig();
-  if (missing.length > 0) {
+  if (!isSmtpConfigured()) {
     return null;
   }
 
-  const port = Number(process.env.SMTP_PORT) || 587;
-  const secure = process.env.SMTP_SECURE === "true" || port === 465;
+  const port = env.SMTP_PORT || 587;
+  const secure = env.SMTP_SECURE === "true" || port === 465;
 
   transporterInstance = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
+    host: env.SMTP_HOST,
     port,
     secure,
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: env.SMTP_USER,
+      pass: env.SMTP_PASS,
     },
   });
 
   return transporterInstance;
 }
 
+export function setTransporterInstance(transporter: Transporter | null): void {
+  transporterInstance = transporter;
+}
+
+export function resetTransporterInstance(): void {
+  transporterInstance = null;
+}
+
 /**
  * Send an email using Nodemailer.
- * If SMTP configuration is missing, logs a warning and gracefully resolves
- * without throwing to allow development/offline workflows to proceed.
+ * If SMTP configuration is missing, logs a warning and returns false.
+ * If SMTP is configured and delivery fails, it throws an error.
  */
 export async function sendMail(options: SendMailOptions): Promise<boolean> {
   const transporter = getTransporter();
@@ -74,7 +85,7 @@ export async function sendMail(options: SendMailOptions): Promise<boolean> {
     return false;
   }
 
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const from = env.SMTP_FROM || env.SMTP_USER || "noreply@brightloop.com";
 
   await transporter.sendMail({
     from,

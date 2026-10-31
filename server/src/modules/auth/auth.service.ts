@@ -4,14 +4,16 @@ import jwt from "jsonwebtoken";
 import { Role } from "@prisma/client";
 import { env } from "../../config/env";
 import { AppError } from "../../lib/app-error";
-import { sendPasswordResetEmail } from "../../lib/mailer";
+import { isSmtpConfigured, sendPasswordResetEmail } from "../../lib/mailer";
 import { prisma } from "../../lib/prisma";
-import type {
-  ChangePasswordInput,
-  ForgotPasswordInput,
-  LoginInput,
-  ResetPasswordInput,
-  SignupInput,
+import {
+  PASSWORD_ERROR_MESSAGE,
+  PASSWORD_REGEX,
+  type ChangePasswordInput,
+  type ForgotPasswordInput,
+  type LoginInput,
+  type ResetPasswordInput,
+  type SignupInput,
 } from "./auth.schema";
 
 export interface SafeUser {
@@ -40,6 +42,7 @@ export interface ChangePasswordResult {
 export interface ForgotPasswordResult {
   success: boolean;
   message: string;
+  emailSent?: boolean;
 }
 
 export interface ResetPasswordResult {
@@ -211,6 +214,7 @@ export async function forgotPassword(
   const genericResponse: ForgotPasswordResult = {
     success: true,
     message: "If an account with that email exists, a password reset link has been sent.",
+    emailSent: false,
   };
 
   const user = await prisma.user.findUnique({
@@ -241,15 +245,44 @@ export async function forgotPassword(
     },
   });
 
-  // Send reset link using CLIENT_ORIGIN: CLIENT_URL/reset-password?token=...
+  // Construct reset link using CLIENT_ORIGIN: CLIENT_URL/reset-password?token=...
   const resetUrl = `${env.CLIENT_ORIGIN}/reset-password?token=${rawToken}`;
-  try {
-    await sendPasswordResetEmail(user.email, resetUrl);
-  } catch (error) {
-    console.error("[auth.service] Failed to send password reset email:", error);
+
+  // If SMTP is not configured, record working token logic but do not attempt delivery
+  if (!isSmtpConfigured()) {
+    console.warn(
+      `[auth.service] Password reset token generated for user ${user.id}, but SMTP is not configured. Email delivery unverified.`,
+    );
+    return {
+      success: true,
+      message: "If an account with that email exists, a password reset link has been sent.",
+      emailSent: false,
+    };
   }
 
-  return genericResponse;
+  // When SMTP is configured, attempt delivery and handle failure properly
+  try {
+    const sent = await sendPasswordResetEmail(user.email, resetUrl);
+    if (!sent) {
+      throw new AppError("Failed to deliver password reset email. Please try again later.", 500);
+    }
+  } catch (error) {
+    console.error("[auth.service] Failed to send password reset email:", error);
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError(
+      "Failed to deliver password reset email. Please try again later.",
+      500,
+      error instanceof Error ? error.message : null,
+    );
+  }
+
+  return {
+    success: true,
+    message: "If an account with that email exists, a password reset link has been sent.",
+    emailSent: true,
+  };
 }
 
 /**
@@ -257,9 +290,10 @@ export async function forgotPassword(
  * - Hash incoming token using SHA-256.
  * - Find matching PasswordResetToken.
  * - Reject missing, expired or already-used tokens with HTTP 400.
+ * - Validate new password against complexity regex.
  * - Hash new password using bcryptjs.
  * - Update user password.
- * - Mark token used by setting usedAt.
+ * - Mark token used by setting usedAt, and invalidate any other active tokens for this user.
  * - Perform related database updates safely in a Prisma transaction.
  */
 export async function resetPassword(
@@ -279,6 +313,11 @@ export async function resetPassword(
 
   if (!token || !newPassword) {
     throw new AppError("Token and new password are required", 400);
+  }
+
+  // Validate new password complexity
+  if (!PASSWORD_REGEX.test(newPassword)) {
+    throw new AppError(PASSWORD_ERROR_MESSAGE, 400);
   }
 
   // Hash incoming token using SHA-256
@@ -323,8 +362,12 @@ export async function resetPassword(
       where: { id: resetToken.userId },
       data: { passwordHash },
     });
-    await tx.passwordResetToken.update({
-      where: { id: resetToken.id },
+    // Invalidate all active reset tokens for this user so none can be reused
+    await tx.passwordResetToken.updateMany({
+      where: {
+        userId: resetToken.userId,
+        usedAt: null,
+      },
       data: { usedAt: new Date() },
     });
   });
